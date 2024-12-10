@@ -9,6 +9,7 @@ from qdrant_client import QdrantClient
 class GuardrailModel(BaseModel):
     response: bool
 
+
 @observe
 def main():
     qdrant_client = QdrantClient("http://localhost")
@@ -20,7 +21,9 @@ def main():
     if check_violence_in_text(openai_client, query):
         print("GUARDRAIL FAILED: The query contains references to violence or hate.")
     else:
-        print("GUARDRAIL PASSED: The query does not contain references to violence or hate.")
+        print(
+            "GUARDRAIL PASSED: The query does not contain references to violence or hate."
+        )
 
     expanded_query = expand_query(openai_client, query)
     print(f"EXPANDED QUERY: {expanded_query}")
@@ -44,7 +47,7 @@ def main():
     print(f"GENERATED ANSWER: {generated_answer}")
 
 
-def generate_answer(openai_client:OpenAI, query:str, context: str) -> str:
+def generate_answer(openai_client: OpenAI, query: str, context: str) -> str:
     system_prompt = """
       You are a DVD record store assistant and your goal is to recommend the user with a good movie to watch.
 
@@ -69,7 +72,9 @@ def generate_answer(openai_client:OpenAI, query:str, context: str) -> str:
     return generated_answer
 
 
-def rerank_movies(openai_client: OpenAI, payloads: list[dict[str, Any]], query:str) -> str:
+def rerank_movies(
+    openai_client: OpenAI, payloads: list[dict[str, Any]], query: str
+) -> str:
     reranking_prompt = f"""
     We want to find the most relevant movie to the following query:
     {query}
@@ -89,27 +94,29 @@ def rerank_movies(openai_client: OpenAI, payloads: list[dict[str, Any]], query:s
     ranked_movies = reranking_response.choices[0].message.content
     return ranked_movies
 
+
 @observe
 def get_payload_from_embedded_query(
-        qdrant_client: QdrantClient,
-        query_embedding:list[float],
-        collection_name:str="movies"
+    qdrant_client: QdrantClient,
+    query_embedding: list[float],
+    collection_name: str = "movies",
 ) -> list[dict[str, Any]]:
     search_result = qdrant_client.search(
-        collection_name=collection_name,
-        query_vector=query_embedding,
-        limit=5
+        collection_name=collection_name, query_vector=query_embedding, limit=5
     )
     payloads = [r.payload for r in search_result]
     return payloads
 
+
 @observe
-def embed_text(openai_client: OpenAI, text:str, embedding_model:str="text-embedding-3-small") -> list[float]:
+def embed_text(
+    openai_client: OpenAI, text: str, embedding_model: str = "text-embedding-3-small"
+) -> list[float]:
     embedding_response = openai_client.embeddings.create(
-        input=text,
-        model=embedding_model
+        input=text, model=embedding_model
     )
     return embedding_response.data[0].embedding
+
 
 @observe
 def create_hypothetical_movie_overview(openai_client: OpenAI, query: str) -> str:
@@ -127,6 +134,7 @@ def create_hypothetical_movie_overview(openai_client: OpenAI, query: str) -> str
     hyde_description = hyde_response.choices[0].message.content
     return hyde_description
 
+
 @observe
 def expand_query(openai_client: OpenAI, query: str) -> str:
     query_expansion_prompt = f"""
@@ -143,8 +151,9 @@ def expand_query(openai_client: OpenAI, query: str) -> str:
     expanded_query = query_expansion_response.choices[0].message.content
     return expanded_query
 
+
 @observe
-def check_violence_in_text(openai_client:OpenAI, query:str) -> bool:
+def check_violence_in_text(openai_client: OpenAI, query: str) -> bool:
     guardrail_prompt = f"""
     Check the text after the --- to ensure that it does not contain any reference to violence or hate:
     ---
@@ -159,6 +168,7 @@ def check_violence_in_text(openai_client:OpenAI, query:str) -> bool:
         response_format=GuardrailModel,
     )
     return guardrail_response.choices[0].message.parsed.response
+
 
 @observe
 def format_records_into_context(payloads: list[dict[str, Any]]) -> str:
@@ -180,5 +190,5 @@ def format_records_into_context(payloads: list[dict[str, Any]]) -> str:
     return formatted_template
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
