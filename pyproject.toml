@@ -4,4 +4,10 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "openai>=1.57.1",
+    "pandas>=2.2.3",
+    "pyarrow>=18.1.0",
+    "qdrant-client>=1.12.1",
+    "tqdm>=4.67.1",
+]
